@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">APK安装工具</string>
+    <string name="scan_devices">扫描设备</string>
+    <string name="select_apk">选择APK</string>
+    <string name="install_apk">安装APK</string>
+    <string name="scanning">正在扫描局域网设备...</string>
+    <string name="no_devices_found">未找到设备</string>
+    <string name="devices_found">找到 %d 个设备</string>
+    <string name="select_device">选择设备</string>
+    <string name="apk_selected">已选择: %s</string>
+    <string name="no_apk_selected">未选择APK文件</string>
+    <string name="installing">正在安装...</string>
+    <string name="install_success">安装成功！</string>
+    <string name="install_failed">安装失败: %s</string>
+    <string name="connecting">正在连接设备...</string>
+    <string name="connection_failed">连接失败</string>
+    <string name="select_device_first">请先选择设备</string>
+    <string name="select_apk_first">请先选择APK文件</string>
+    <string name="permission_required">需要存储权限才能扫描APK文件</string>
+    <string name="scanning_apks">正在扫描APK文件...</string>
+    <string name="no_apks_found">未找到APK文件</string>
+    <string name="apks_found">找到 %d 个APK文件</string>
+    <string name="scan_apk">扫描APK</string>
+</resources>
