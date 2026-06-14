@@ -19,18 +19,41 @@ import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * APK下载管理器（支持动态负载均衡多线程下载）
- * 负责从服务器获取最新版本信息并通过智能多线程下载APK
+ * 负责从TV App Store获取最新版本信息并通过智能多线程下载APK
  */
 class ApkDownloader(private val context: Context) {
     
     companion object {
         private const val TAG = "ApkDownloader"
-        private const val VERSION_API_URL = "http://jinshan.southeastasia.cloudapp.azure.com:8011/api/version/latest?platform=android"
+        private const val TV_STORE_BASE_URL = "https://tvstore.jinshanweb.com"
+        private const val TV_APP_STORE_APP_ID = 6
+        private const val VERSION_API_URL = "$TV_STORE_BASE_URL/api/apps/$TV_APP_STORE_APP_ID"
         private const val BUFFER_SIZE = 8192
         private const val CONNECT_TIMEOUT = 30000
         private const val READ_TIMEOUT = 60000
         private const val THREAD_COUNT = 4 // 4线程下载
         private const val CHUNK_SIZE = 2 * 1024 * 1024L // 每块2MB，实现动态负载均衡
+
+        fun parseTvStoreVersionInfo(response: String): VersionInfo? {
+            val json = JSONObject(response)
+            val app = json.optJSONObject("app") ?: return null
+            val versions = app.optJSONArray("versions") ?: return null
+            if (versions.length() == 0) return null
+
+            val latest = versions.optJSONObject(0) ?: return null
+            val versionName = latest.optString("version_name", "unknown")
+            val versionId = latest.optInt("id", 0)
+            if (versionId <= 0) return null
+
+            return VersionInfo(
+                version = versionName,
+                versionCode = latest.optInt("version_code", 0),
+                downloadUrl = "$TV_STORE_BASE_URL/api/download/$versionId",
+                fileName = "tv-app-store-$versionName.apk",
+                fileSize = latest.optLong("file_size", 0L),
+                releaseNotes = if (latest.has("changelog")) latest.optString("changelog") else null
+            )
+        }
     }
     
     /**
@@ -95,18 +118,8 @@ class ApkDownloader(private val context: Context) {
             val response = connection.inputStream.bufferedReader().use { it.readText() }
             Log.d(TAG, "服务器响应: $response")
             
-            // 解析JSON响应
-            val json = JSONObject(response)
-            val data = json.optJSONObject("data") ?: json
-            
-            val versionInfo = VersionInfo(
-                version = data.optString("version", "unknown"),
-                versionCode = data.optInt("versionCode", 0),
-                downloadUrl = data.optString("downloadUrl", ""),
-                fileName = data.optString("fileName", "app-release.apk"),
-                fileSize = data.optLong("fileSize", 0L),
-                releaseNotes = if (data.has("releaseNotes")) data.optString("releaseNotes") else null
-            )
+            val versionInfo = parseTvStoreVersionInfo(response)
+                ?: return@withContext Result.failure(Exception("TV App Store暂无可下载版本"))
             
             if (versionInfo.downloadUrl.isEmpty()) {
                 return@withContext Result.failure(Exception("下载地址为空"))

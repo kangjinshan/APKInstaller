@@ -108,7 +108,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="APK文件"
+                android:text="TV App Store"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="12dp"/>
@@ -117,7 +117,7 @@
                 android:id="@+id/tvApkInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="未下载APK文件"
+                android:text="未下载 TV App Store"
                 android:textSize="14sp"
                 android:layout_marginBottom="12dp"
                 android:textColor="@android:color/darker_gray"/>
@@ -147,7 +147,7 @@
         android:id="@+id/btnDownloadOrInstall"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="下载APK"
+        android:text="下载 TV App Store"
         android:enabled="true"
         app:icon="@android:drawable/stat_sys_download"
         style="@style/Widget.Material3.Button.ElevatedButton"/>

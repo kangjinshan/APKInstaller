@@ -11,8 +11,8 @@ import os
 from pathlib import Path
 
 # 小米盒子配置
-TV_IP = "192.168.31.183"  # 小米盒子IP地址
-TV_PORT = 8888  # APK安装工具监听端口
+TV_IP = "192.168.31.200"  # 小米盒子IP地址
+TV_PORT = 9999  # APK安装工具监听端口
 BUFFER_SIZE = 8192  # 8KB缓冲区
 
 

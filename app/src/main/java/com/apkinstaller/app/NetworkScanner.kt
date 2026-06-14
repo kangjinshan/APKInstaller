@@ -12,7 +12,7 @@ class NetworkScanner {
     
     /**
      * 扫描局域网内的所有设备
-     * 扫描当前网段的所有IP地址，检测8888端口（Socket传输端口）是否开放
+     * 扫描当前网段的所有IP地址，检测Socket传输端口是否开放
      */
     suspend fun scanNetwork(onDeviceFound: (Device) -> Unit): List<Device> = withContext(Dispatchers.IO) {
         val devices = mutableListOf<Device>()
@@ -36,11 +36,17 @@ class NetworkScanner {
             val jobs = (1..254).map { i ->
                 async {
                     val ip = "$subnet.$i"
-                    // 扫描Socket传输端口（8888）
-                    if (isDeviceReachable(ip, SocketTransferManager.TRANSFER_PORT)) {
-                        val device = Device(ip, SocketTransferManager.TRANSFER_PORT)
-                        devices.add(device)
-                        onDeviceFound(device)
+                    // 同时兼容新版端口和旧电视端接收端口。
+                    val reachablePort = SocketTransferManager.SUPPORTED_TRANSFER_PORTS
+                        .firstOrNull { port -> isDeviceReachable(ip, port) }
+                    if (reachablePort != null) {
+                        synchronized(devices) {
+                            if (devices.none { it.ip == ip }) {
+                                val device = Device(ip, reachablePort)
+                                devices.add(device)
+                                onDeviceFound(device)
+                            }
+                        }
                     }
                 }
             }

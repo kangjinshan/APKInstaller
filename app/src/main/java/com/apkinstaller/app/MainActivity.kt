@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
         initializeComponents()
         setupRecyclerView()
         setupClickListeners()
-        requestInstallPermission()
+        // 不在启动时请求权限，改为在需要安装APK时再请求
     }
     
     private fun initializeComponents() {
@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity() {
             scanDevices()
         }
         
-        // 下载或安装按钮
+        // 下载TV App Store或安装到目标电视
         binding.btnDownloadOrInstall.setOnClickListener {
             if (downloadedApkFile == null) {
                 downloadApk()
@@ -220,7 +220,7 @@ class MainActivity : AppCompatActivity() {
         binding.btnDownloadOrInstall.text = "下载中..."
         binding.progressDownload.visibility = View.VISIBLE
         binding.tvDownloadProgress.visibility = View.VISIBLE
-        binding.tvStatus.text = "正在下载最新版本APK..."
+        binding.tvStatus.text = "正在下载 TV App Store..."
         
         lifecycleScope.launch {
             try {
@@ -239,9 +239,9 @@ class MainActivity : AppCompatActivity() {
                     
                     binding.progressDownload.visibility = View.GONE
                     binding.tvDownloadProgress.visibility = View.GONE
-                    binding.btnDownloadOrInstall.text = "安装APK"
+                    binding.btnDownloadOrInstall.text = "安装到电视"
                     binding.btnDownloadOrInstall.isEnabled = true
-                    binding.tvApkInfo.text = "已下载: ${apkFile.name}\n大小: ${apkFile.length() / (1024 * 1024)} MB"
+                    binding.tvApkInfo.text = "已下载 TV App Store: ${apkFile.name}\n大小: ${apkFile.length() / (1024 * 1024)} MB"
                     binding.tvStatus.text = "下载完成！"
                     showToast("下载完成")
                     
@@ -252,7 +252,7 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 binding.progressDownload.visibility = View.GONE
                 binding.tvDownloadProgress.visibility = View.GONE
-                binding.btnDownloadOrInstall.text = "下载APK"
+                binding.btnDownloadOrInstall.text = "下载 TV App Store"
                 binding.btnDownloadOrInstall.isEnabled = true
                 binding.tvStatus.text = "下载失败: ${e.message}"
                 showToast("下载失败: ${e.message}")
@@ -272,7 +272,7 @@ class MainActivity : AppCompatActivity() {
         }
         
         if (apkFile == null) {
-            showToast("请先下载APK文件")
+            showToast("请先下载 TV App Store")
             return
         }
         
@@ -283,6 +283,7 @@ class MainActivity : AppCompatActivity() {
             try {
                 socketTransferManager.sendApk(
                     targetIp = device.ip,
+                    targetPort = device.port,
                     apkFile = apkFile,
                     onProgress = { progress ->
                         lifecycleScope.launch {
@@ -291,7 +292,7 @@ class MainActivity : AppCompatActivity() {
                     },
                     onSuccess = {
                         lifecycleScope.launch {
-                            binding.tvStatus.text = "发送成功！目标设备将自动安装"
+                            binding.tvStatus.text = "发送成功！电视将安装 TV App Store"
                             showToast("发送成功")
                         }
                     },
@@ -357,10 +358,10 @@ class MainActivity : AppCompatActivity() {
         val hasDevice = selectedDevice != null
         
         if (hasApk) {
-            binding.btnDownloadOrInstall.text = "安装APK"
+            binding.btnDownloadOrInstall.text = "安装到电视"
             binding.btnDownloadOrInstall.isEnabled = hasDevice
         } else {
-            binding.btnDownloadOrInstall.text = "下载APK"
+            binding.btnDownloadOrInstall.text = "下载 TV App Store"
             binding.btnDownloadOrInstall.isEnabled = true
         }
     }

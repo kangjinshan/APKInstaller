@@ -17,7 +17,9 @@ class SocketTransferManager(private val context: Context) {
     
     companion object {
         private const val TAG = "SocketTransferManager"
-        const val TRANSFER_PORT = 8888
+        const val TRANSFER_PORT = 9999
+        const val LEGACY_TRANSFER_PORT = 8888
+        val SUPPORTED_TRANSFER_PORTS = listOf(TRANSFER_PORT, LEGACY_TRANSFER_PORT)
         private const val BUFFER_SIZE = 8192
         private const val SOCKET_TIMEOUT = 30000 // 30秒超时
     }
@@ -37,7 +39,13 @@ class SocketTransferManager(private val context: Context) {
             // 如果服务器已在运行，先停止
             stopReceiveServer()
             
-            serverSocket = ServerSocket(TRANSFER_PORT)
+            // 等待端口释放
+            Thread.sleep(500)
+            
+            // 创建ServerSocket并设置SO_REUSEADDR
+            serverSocket = ServerSocket()
+            serverSocket?.reuseAddress = true
+            serverSocket?.bind(java.net.InetSocketAddress(TRANSFER_PORT))
             isServerRunning = true
             
             Log.d(TAG, "接收服务器已启动，端口: $TRANSFER_PORT")
@@ -85,6 +93,7 @@ class SocketTransferManager(private val context: Context) {
      */
     suspend fun sendApk(
         targetIp: String,
+        targetPort: Int = TRANSFER_PORT,
         apkFile: File,
         onProgress: (Int) -> Unit,
         onSuccess: () -> Unit,
@@ -103,11 +112,11 @@ class SocketTransferManager(private val context: Context) {
                 return@withContext
             }
             
-            Log.d(TAG, "开始发送APK到 $targetIp:$TRANSFER_PORT")
+            Log.d(TAG, "开始发送APK到 $targetIp:$targetPort")
             
             // 连接到目标设备
             socket = Socket()
-            socket.connect(InetSocketAddress(targetIp, TRANSFER_PORT), SOCKET_TIMEOUT)
+            socket.connect(InetSocketAddress(targetIp, targetPort), SOCKET_TIMEOUT)
             socket.soTimeout = SOCKET_TIMEOUT
             
             outputStream = socket.getOutputStream()
